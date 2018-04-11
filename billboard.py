@@ -16,17 +16,18 @@ from pandas import DataFrame
 from collections import Counter
 from operator import itemgetter
 
-#IMPORT THE CSV
+
 def rungraph():
     token = ''
     header = headers = {'Authorization': f'Bearer {token}','Content-type': 'application/json'}
 
-
+    #IMPORT THE CSV
     raw_billboard_csv = requests.get('https://query.data.world/s/ptemuucu25h6vxoaswh5lwg6b6x6oh', 
                                 headers=headers)
 
     raw_billboard_data = raw_billboard_csv.text
 
+    #Split Data
     billboard_split = raw_billboard_data.split('\r')
     billboard_split[6]
 
@@ -38,38 +39,31 @@ def rungraph():
 
     album_artist = [r.split(',')[3] for r in billboard_split[1:]]
 
+    #Zip data in preperation for insertion into database
     formatted_albums = list(zip(album_year, album_name, album_artist, album_genre))
     type(formatted_albums[0])
     formatted_albums[0]
 
+    #Create SQLITE database
     conn = sqlite3.connect('album_info.db')
     cur = conn.cursor() 
     cur.execute('''drop table IF EXISTS album_data''')
     cur.execute('''CREATE TABLE IF NOT EXISTS album_data (album_year TEXT, album_name TEXT, album_artist TEXT, album_genre TEXT)''')
 
+    #Insert info into SQLITE database
     cur.executemany('INSERT OR REPLACE INTO album_data VALUES (?,?,?,?)', formatted_albums)
     conn.commit()
 
-    most_albums_artist = cur.execute('''SELECT album_artist  FROM 'album_data' GROUP BY album_artist ORDER BY count(album_genre) DESC
-    LIMIT 10;''').fetchall()
-
+    #Select and count data from database
     most_albums_count = cur.execute(''' SELECT album_artist, count(album_artist) FROM 'album_data' GROUP BY album_artist ORDER BY count(album_genre) DESC LIMIT 15;''').fetchall()
 
+    #Split data into separate lists
     artist_name, artist_appearances = map(list, zip(*most_albums_count))
     print(artist_name)
     print(artist_appearances)
 
-
+    #Setup bar graph
     x = np.arange(4)
-
-
-
-    def millions(x, pos):
-        'The two args are the value and tick position'
-        return '$%1.1fM' % (x * 1e-6)
-
-
-    formatter = FuncFormatter(millions)
     y_pos = np.arange(len(artist_name))
     colors = ['r','y','g','b', '#FB00FF','m','#FFA8A8','#9FFFA6',]
     plt.bar(y_pos, artist_appearances, align='center', alpha=0.5, color=colors)
@@ -77,8 +71,9 @@ def rungraph():
     plt.ylabel('# of Appearances on Rolling Stone Top 500 Chart')
     plt.title('Top Appearing Artists on Rolling Stone Top 500 Albums of All Time' '\n' 'Name of Artist')
     
+    #Show Graph
     plt.show()
-
+#Program created with a yes/no run prompt to prevent any chance of an infinite loop
 def progstart():
     choice = input('Would you like to run the graph?>  ')
     choice = choice.lower()
@@ -89,4 +84,6 @@ def progstart():
     else:
         print("Say 'yes' when ready!")
         progstart()
+
+#Begin program running
 progstart()
