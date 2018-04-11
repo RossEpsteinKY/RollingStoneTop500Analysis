@@ -1,0 +1,17 @@
+altgraph==0.15
+dis3==0.1.2
+future==0.16.0
+macholib==1.9
+pefile==2017.11.5
+PyInstaller==3.3.1
+bokeh==0.12.10
+matplotlib==2.1.0
+SQLAlchemy==1.1.13
+pandas==0.20.3
+numba==0.35.0
+numexpr==2.6.2
+numpy==1.13.3
+numpydoc==0.7.0
+heapdict==1.0.0
+requests==2.18.4
+pypiwin32==220
